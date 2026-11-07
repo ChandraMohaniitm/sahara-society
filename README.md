@@ -2,7 +2,7 @@
 
 A modern, responsive, animated landing page for **SAHARA – The Social Welfare Society, IIT Madras (BS Degree Program)**. Built for the SAHARA WebOps Recruitment 2026 practical round.
 
-**Live site:** 
+**Live site:** https://sahara-society.vercel.app
 
 ## Features
 
