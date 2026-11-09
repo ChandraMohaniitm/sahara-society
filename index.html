@@ -257,9 +257,10 @@ footer a:hover{opacity:1;text-decoration:underline}
    <p><b>Follow</b>Instagram · LinkedIn · YouTube</p>
   </div>
   <form id="cform" class="rv">
-   <input required placeholder="Your name" aria-label="Your name">
-   <input required type="email" placeholder="Email address" aria-label="Email address">
-   <textarea required placeholder="How can we help?" aria-label="Message"></textarea>
+   <input required name="name" placeholder="Your name" aria-label="Your name">
+   <input required type="email" name="email" placeholder="Email address" aria-label="Email address">
+   <textarea required name="message" placeholder="How can we help?" aria-label="Message"></textarea>
+   <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
    <button class="btn p" type="submit">Send message</button>
    <div id="ok" role="status"></div>
   </form>
@@ -290,6 +291,7 @@ footer a:hover{opacity:1;text-decoration:underline}
 /* ============ CONFIG: add your OpenRouter key here ============ */
 const OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY";
 const MODEL = "openai/gpt-4o-mini"; // any OpenRouter model id
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwv955XEflZIuP2HHK6UU-tfCpVZs2SRn4tPCekeoVjOa7xmMiqMVCyn3Up6INMiao/exec"; // contact form sends here (see google-apps-script.gs)
 /* NOTE: a key in frontend code is visible to visitors. Use a spending limit, or proxy via a backend before going public. */
 
 /* ============ CONTENT (sample data, replace with real details) ============ */
@@ -366,7 +368,17 @@ const hold=()=>clearInterval(auto),go=()=>{hold();auto=setInterval(nxt,3200)};
 ["mouseleave","touchend","focusout"].forEach(v=>tr.parentNode.addEventListener(v,go,{passive:true}));
 $("#lb").onclick=()=>$("#lb").classList.remove("open");
 addEventListener("keydown",e=>{if(e.key==="Escape"){$("#lb").classList.remove("open");$("#chat").classList.remove("open")}});
-$("#cform").onsubmit=e=>{e.preventDefault();$("#ok").textContent="Message sent. We will get back to you soon.";e.target.reset()};
+$("#cform").onsubmit=async e=>{
+ e.preventDefault();const f=e.target,btn=f.querySelector("button"),ok=$("#ok");
+ if(f.website.value)return; /* honeypot: bots fill this hidden field */
+ if(SHEET_URL.startsWith("YOUR_")){ok.textContent="The form is not connected yet. Add your Apps Script URL in the CONFIG block.";return}
+ btn.disabled=true;btn.textContent="Sending…";ok.textContent="";
+ try{
+  await fetch(SHEET_URL,{method:"POST",mode:"no-cors",body:new URLSearchParams({name:f.name.value.trim(),email:f.email.value.trim(),message:f.message.value.trim()})});
+  ok.textContent="Message sent. We will get back to you soon.";f.reset();
+ }catch(err){ok.textContent="Could not send right now. Please email connectwithsahara@study.iitm.ac.in."}
+ btn.disabled=false;btn.textContent="Send message";
+};
 
 /* reveal + counters */
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{threshold:.15});
